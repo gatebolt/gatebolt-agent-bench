@@ -1,0 +1,48 @@
+{
+  "name": "gatebolt-agent-bench",
+  "version": "0.1.0",
+  "description": "Attack scenarios for testing AI coding agents against prompt injection and secret leaks.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "pnpm build",
+    "check": "eslint . && tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,js,json,md,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md,yml}\"",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.23.0",
+    "@types/node": "^22.20.5",
+    "@vitest/coverage-v8": "5.0.5",
+    "eslint": "^9.23.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.27.0",
+    "vitest": "5.0.5"
+  },
+  "engines": {
+    "node": ">=22.9"
+  },
+  "packageManager": "pnpm@12.3.4",
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}
