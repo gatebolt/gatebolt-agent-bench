@@ -10,7 +10,12 @@ Pin a dependency on the repository to a commit:
 pnpm add github:gatebolt/gatebolt-agent-bench#<commit>
 ```
 
-The `prepare` script builds `dist` when the package is installed from the repository. Package managers that block dependency build scripts must allow this package's.
+The `prepare` script builds `dist` when the package is installed from the repository. Package managers that block dependency build scripts must allow this package's. With pnpm, the consuming workspace lists it under `allowBuilds` in `pnpm-workspace.yaml`:
+
+```yaml
+allowBuilds:
+  "gatebolt-agent-bench@git+https://github.com/gatebolt/gatebolt-agent-bench.git": true
+```
 
 ## Usage
 
@@ -18,13 +23,28 @@ The `prepare` script builds `dist` when the package is installed from the reposi
 import {
   AGENT_DATA_REVISION,
   agentAttackerBrief,
+  type IndirectScenario,
   poisonPrompt,
   scenarioData,
 } from "gatebolt-agent-bench";
 
-const scenario = scenarioData.scenarios[0];
-const poison = poisonPrompt(scenario);
-const brief = agentAttackerBrief(note, rules);
+// Placeholder: the duel engine's rules text, which the runner supplies.
+const rules = "<duel rules text from the runner>";
+
+for (const scenario of scenarioData.scenarios) {
+  if (scenario.channel === "direct") {
+    // A direct scenario's `brief` is the note for the attacker's chat.
+    const brief = agentAttackerBrief(scenario.brief, rules);
+  }
+}
+
+// File and page scenarios plant text instead, so they take a poison prompt.
+const indirect = scenarioData.scenarios.filter(
+  (s): s is IndirectScenario => s.channel === "file" || s.channel === "page",
+);
+for (const scenario of indirect) {
+  const poison = poisonPrompt(scenario);
+}
 ```
 
 The data is validated and deep-frozen at import. Consumers record `AGENT_DATA_REVISION` with each run. `rules` is the duel engine's rules text, which the runner passes in.
