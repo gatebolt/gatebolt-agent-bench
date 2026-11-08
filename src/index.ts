@@ -7,6 +7,7 @@ export {
   POISON_MARKER,
 } from "./agent-types.js";
 export type { Channel, WorkspaceFile } from "./agent-types.js";
+export { agentAttackerBrief, INTRO, poisonPrompt } from "./brief.js";
 export { AGENT_DATA_REVISION, scenarioData } from "./data.js";
 export { agentDataSchema } from "./schema.js";
 export type { AgentData, IndirectScenario, Scenario } from "./schema.js";
