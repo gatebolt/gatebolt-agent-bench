@@ -35,10 +35,11 @@ describe("schema", () => {
     }).toThrow(TypeError);
   });
 
-  it.each<[string, (data: AgentData) => unknown]>([
+  it.each<[string, (data: AgentData) => unknown, Record<string, unknown>]>([
     [
       "a duplicate id",
       (d) => ({ ...d, scenarios: [...d.scenarios, d.scenarios[0]] }),
+      { path: ["scenarios"], message: "scenario ids must be unique" },
     ],
     [
       "a workspace without the secret",
@@ -46,6 +47,10 @@ describe("schema", () => {
         ...d,
         workspace: { ...d.workspace, "secrets/password.txt": "hunter2" },
       }),
+      {
+        path: ["workspace"],
+        message: "workspace must hold secrets/password.txt with {{password}}",
+      },
     ],
     [
       "an unknown channel",
@@ -55,6 +60,10 @@ describe("schema", () => {
           i === 0 ? { ...s, channel: "email" } : s,
         ),
       }),
+      {
+        code: "invalid_union_discriminator",
+        path: ["scenarios", 0, "channel"],
+      },
     ],
     [
       "a page planted away from /docs/<its id>",
@@ -62,6 +71,7 @@ describe("schema", () => {
         withScenario(d, "check-docs-page", {
           plantAt: "/docs/markdown-image-beacon",
         }),
+      { message: "check-docs-page must plant at /docs/check-docs-page" },
     ],
     [
       "a file scenario that also ships its planted file",
@@ -69,6 +79,9 @@ describe("schema", () => {
         withScenario(d, "setup-script-indirection", {
           workspace: { "CONTRIBUTING.md": "x" },
         }),
+      {
+        message: "setup-script-indirection must not also hold its planted file",
+      },
     ],
     [
       "a file scenario that adds a file in secrets/",
@@ -76,6 +89,10 @@ describe("schema", () => {
         withScenario(d, "setup-script-indirection", {
           workspace: { "secrets/other.txt": "x" },
         }),
+      {
+        message: "must not add files in secrets/",
+        path: ["scenarios", 8, "workspace", "secrets/other.txt"],
+      },
     ],
     [
       "a workspace file marked not executable",
@@ -86,6 +103,20 @@ describe("schema", () => {
           "run.sh": { body: "", executable: false },
         },
       }),
+      {
+        code: "invalid_union",
+        path: ["workspace", "run.sh"],
+        unionErrors: expect.arrayContaining([
+          expect.objectContaining({
+            issues: [
+              expect.objectContaining({
+                code: "invalid_literal",
+                path: ["workspace", "run.sh", "executable"],
+              }),
+            ],
+          }),
+        ]),
+      },
     ],
     [
       "an extra field",
@@ -95,22 +126,30 @@ describe("schema", () => {
           i === 0 ? { ...s, extra: "x" } : s,
         ),
       }),
+      { code: "unrecognized_keys", path: ["scenarios", 0], keys: ["extra"] },
     ],
     [
       "duplicate attackers",
       (d) => ({ ...d, attackers: [d.attackers[0], d.attackers[0]] }),
+      { path: ["attackers"], message: "attackers must be unique" },
     ],
     [
       "a cost range with low above high",
       (d) => ({ ...d, fallbackCostPerBattle: { low: 1, high: 0.5 } }),
+      {
+        path: ["fallbackCostPerBattle"],
+        message: "low must not be above high",
+      },
     ],
     [
       "a workspace path with a parent segment",
       (d) => ({ ...d, workspace: { ...d.workspace, "a/../b": "x" } }),
+      { message: "no parent paths" },
     ],
     [
       "a file planted in secrets/",
       (d) => withScenario(d, "fix-failing-test", { plantAt: "secrets/x.md" }),
+      { message: "must not plant in secrets/" },
     ],
     [
       "a page scenario whose page is missing",
@@ -119,6 +158,7 @@ describe("schema", () => {
         delete pages["/docs/check-docs-page"];
         return { ...d, pages };
       },
+      { message: "/docs/check-docs-page needs a page with one {{poison}}" },
     ],
     [
       "a page with no poison marker",
@@ -126,6 +166,7 @@ describe("schema", () => {
         ...d,
         pages: { ...d.pages, "/docs/check-docs-page": "# Docs\n" },
       }),
+      { message: "/docs/check-docs-page needs a page with one {{poison}}" },
     ],
     [
       "a page with two poison markers",
@@ -136,14 +177,24 @@ describe("schema", () => {
           "/docs/check-docs-page": `${d.pages["/docs/check-docs-page"]}\n{{poison}}`,
         },
       }),
+      { message: "/docs/check-docs-page needs a page with one {{poison}}" },
     ],
     [
       "a repeat count of zero",
       (d) => ({ ...d, repeats: { ...d.repeats, benign: 0 } }),
+      { code: "too_small", path: ["repeats", "benign"] },
     ],
-    ["an attacker without a provider", (d) => ({ ...d, attackers: ["gpt"] })],
-  ])("rejects %s", (_name, change) => {
+    [
+      "an attacker without a provider",
+      (d) => ({ ...d, attackers: ["gpt"] }),
+      { code: "invalid_string", path: ["attackers", 0] },
+    ],
+  ])("rejects %s", (_name, change, reason) => {
     const data = structuredClone(scenarioData);
-    expect(agentDataSchema.safeParse(change(data)).success).toBe(false);
+    const result = agentDataSchema.safeParse(change(data));
+    expect(result.success).toBe(false);
+    expect(result.error?.issues).toContainEqual(
+      expect.objectContaining(reason),
+    );
   });
 });
