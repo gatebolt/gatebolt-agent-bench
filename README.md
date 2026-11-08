@@ -28,7 +28,6 @@ import {
   scenarioData,
 } from "gatebolt-agent-bench";
 
-// Placeholder: the duel engine's rules text, which the runner supplies.
 const rules = "<duel rules text from the runner>";
 
 for (const scenario of scenarioData.scenarios) {
