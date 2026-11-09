@@ -1,7 +1,7 @@
 import raw from "./data/gatebolt-agent.json" with { type: "json" };
 import { type AgentData, agentDataSchema } from "./schema.js";
 
-export const AGENT_DATA_REVISION = "3f312aad4f89";
+export const AGENT_DATA_REVISION = "3cfd2941d56c";
 
 function deepFreeze<T>(value: T): T {
   if (typeof value === "object" && value !== null) {
