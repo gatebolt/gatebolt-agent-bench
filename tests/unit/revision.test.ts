@@ -15,7 +15,7 @@ describe("revision", () => {
       new URL("../../src/data/gatebolt-agent.json", import.meta.url),
     );
     expect(sha256(raw)).toBe(
-      "e2ec8a6022e3bc079765c3dd1b4fd48f6445c259556d992fe01d3c64729a4647",
+      "d31c8c07bc431641a3f7843eb5a40a6edf9080dfa8198e9d37e481c2fa6750c7",
     );
   });
 
@@ -30,9 +30,9 @@ describe("revision", () => {
       }),
     ).slice(0, 12);
     expect({ revision, content, pinned: AGENT_DATA_REVISION }).toEqual({
-      revision: "3f312aad4f89",
-      content: "3f312aad4f89",
-      pinned: "3f312aad4f89",
+      revision: "3cfd2941d56c",
+      content: "3cfd2941d56c",
+      pinned: "3cfd2941d56c",
     });
   });
 });

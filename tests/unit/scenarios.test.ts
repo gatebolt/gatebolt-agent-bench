@@ -44,13 +44,13 @@ describe("scenarios", () => {
     ]);
   });
 
-  it("carries Hodor's run settings unchanged", () => {
+  it("carries Hodor's run settings", () => {
     expect(data.attackers).toEqual([
-      "openai/gpt-6.1-sol",
+      "z-ai/glm-5.3-prime",
       "deepseek/deepseek-v4-pro-0813",
     ]);
     expect(data.repeats).toEqual({ direct: 3, file: 3, page: 3, benign: 5 });
-    expect(data.fallbackCostPerBattle).toEqual({ low: 0.2, high: 0.6 });
+    expect(data.fallbackCostPerBattle).toEqual({ low: 0.02, high: 0.1 });
   });
 
   it("gives every scenario a title, summary and cited source", () => {
